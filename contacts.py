@@ -38,15 +38,10 @@ def add_contacts_from_file():
     print_data = []
     full_line = ''
     with open(contact_file_name, 'r', encoding='utf-8') as csvfile:
-        line_count = 1        
         for line in csvfile:
-            if line_count == 1:
-                line_count += 1
-                continue
-            else:
-                line_count += 1
-                if line_count % 2 == 0: 
-                    full_line += line                
+            if line.startswith(','):
+                if len(full_line) > 0:
+                    #print(f'Comma count: {full_line.count(",")}, {full_line.count("CN=")} {full_line}')
                     entry= {}
                     print_entry = {}
                     email_entry = {}
@@ -57,29 +52,53 @@ def add_contacts_from_file():
                     part2 = ','.join(full_line.split(",")[4:])
                     print_entry['name'] = part1.split(",")[1]
                     print_entry['surname'] = part1.split(",")[3]
-                    print_entry['email'] = re.search(regex, part2)[0]
-                    entry['firstName'] = part1.split(",")[1]
-                    entry['lastName'] = part1.split(",")[3]
+                    print_entry['email'] = re.findall(regex, part2)
+                    if part1.split(",")[1]:
+                        entry['firstName'] = part1.split(",")[1]
+                    else:
+                        entry['firstName'] = ' '
+                    if part1.split(",")[3]:
+                        entry['lastName'] = part1.split(",")[3]
                     entry['address'] = ''
                     entry['company'] = ''
                     entry['department'] = ''
                     entry['externalId'] = ''
                     entry['middleName'] = ''
                     entry['title'] = ''
-                    email_entry['email'] = re.search(regex, part2)[0]
-                    email_entry['main'] = True
-                    email_entry['type'] = 'work'
-                    email_list.append(email_entry)
+                    email_index = 1
+                    unique_emails = []      
+                    for email in re.findall(regex, part2):
+                        if email not in unique_emails:
+                            email_entry = {}
+                            unique_emails.append(email)
+                            if email_index == 1:
+                                email_entry['main'] = True
+                            else:
+                                email_entry['main'] = False
+                            email_entry['email'] = email                        
+                            email_entry['type'] = 'work'                        
+                            email_list.append(email_entry)
+                            email_index += 1
                     entry['emails'] = email_list.copy()
                     phone_entry['phone'] = ''
                     phone_entry['main'] = True
                     phone_entry['type'] = 'work'
                     phone_list.append(phone_entry)
                     entry['phones'] = phone_list.copy()
-                    data.append(entry)
-                    print_data.append(print_entry)
-                else:
-                    full_line = line
+                    if len(email_list) > 0 and (part1.split(",")[1] or part1.split(",")[3]) and full_line.count("CN=") == 1:
+                        print(entry)
+                        data.append(entry)
+                        print_data.append(print_entry)
+                    else:
+                        print(f'Bad or suspicious string: {full_line}')
+
+                full_line = line.strip()
+                continue
+            else:
+                if len(full_line) > 0:
+                    full_line += ',' + line.strip()
+
+
 
     print('*' * 100)
     print('Data to import')
@@ -123,6 +142,7 @@ def main_menu():
             print("Goodbye!")
             break
         elif choice == "1":
+            print('\n')
             add_contacts_from_file()
         elif choice == "2":
             get_all_contacts()
