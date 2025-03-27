@@ -19,7 +19,7 @@ npm-debug.log
 !yarn.lock
 coverage/
 cucumber-report.json
-**/.vscode/**
+**/.vscode*/
 **/.vscode-test/**
 **/.vscode test/**
 **/.vscode-smoke/**
