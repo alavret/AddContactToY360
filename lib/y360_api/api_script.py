@@ -326,6 +326,7 @@ class API360:
         :return: displays success or error message
         """
         for contact in contact_info:
+            print(f'Trying to create contact: {contact}')
             response = requests.post(f"{self.url}/external_contacts", json=contact, headers=self.headers)
             if response.status_code == 200:
                 print(f"Contact {contact['firstName']} {contact['lastName']} was created successfully")
